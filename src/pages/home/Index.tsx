@@ -409,10 +409,11 @@ function Projects() {
           {projectsData.map((p, i) => (
             <motion.div
               key={p.title}
-              initial={{ y: 60, opacity: 0 }}
-              whileInView={{ y: 0, opacity: 1 }}
-              transition={{ delay: i * 0.15, duration: 0.6 }}
-              viewport={{ once: true }}
+              initial={{ x: i % 2 === 0 ? -120 : 120, y: 60, opacity: 0, rotateY: i % 2 === 0 ? -8 : 8 }}
+              whileInView={{ x: 0, y: 0, opacity: 1, rotateY: 0 }}
+              transition={{ delay: i * 0.2, duration: 0.8, type: "spring", stiffness: 80, damping: 18 }}
+              viewport={{ once: true, margin: "-50px" }}
+              whileHover={{ y: -8, boxShadow: `0 20px 60px rgba(0,0,0,0.5), 0 0 30px ${p.color}25` }}
               className="glass project-card"
               style={{
                 padding: "clamp(24px, 4vw, 48px)",
@@ -420,6 +421,8 @@ function Projects() {
                 borderTop: `4px solid ${p.color}`,
                 position: "relative",
                 overflow: "hidden",
+                transformStyle: "preserve-3d" as any,
+                perspective: 1000,
               }}
             >
               {/* Number watermark */}
@@ -589,7 +592,7 @@ function Contact() {
             { label: "LinkedIn", icon: <SiLinkedin size={18} />, href: "https://www.linkedin.com/in/ashutosh-amale-4645b4327/", target: "_blank" },
             { label: "GitHub", icon: <SiGithub size={18} />, href: "https://github.com/Ashutosh-0509", target: "_blank" },
             { label: "Email", icon: <FaEnvelope size={18} />, href: "mailto:ashutoshamale01@gmail.com", target: "_blank" },
-            { label: "Resume", icon: <FaDownload size={18} />, href: "/resume.pdf", target: "_blank" }
+            { label: "Resume", icon: <FaDownload size={18} />, href: "https://drive.google.com/drive/u/0/folders/1O65SOsz7B6Um3WuIJxF2N1KyNsLnktcQ", target: "_blank" }
           ].map((item) => (
             <motion.a key={item.label} href={item.href} target={item.target} rel="noopener noreferrer" whileHover={{ scale: 1.05, borderColor: "#FF6B00" }} whileTap={{ scale: 0.97 }} style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 24px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.08)", color: "white", textDecoration: "none", fontSize: "0.92rem", fontWeight: 600, background: "rgba(255,255,255,0.03)", backdropFilter: "blur(8px)", transition: "all 0.3s" }}>
               {item.icon} {item.label}
@@ -598,7 +601,7 @@ function Contact() {
         </motion.div>
 
         {/* CTA Button */}
-        <motion.a href="mailto:ashutoshamale01@gmail.com" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} viewport={{ once: true }} className="btn-cta" style={{ display: "inline-block", textDecoration: "none" }} whileTap={{ scale: 0.95 }}>
+        <motion.a href="https://mail.google.com/mail/?view=cm&to=ashutoshamale01@gmail.com" target="_blank" rel="noopener noreferrer" initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} viewport={{ once: true }} className="btn-cta" style={{ display: "inline-block", textDecoration: "none" }} whileTap={{ scale: 0.95 }}>
           Contact Me Now
         </motion.a>
       </div>
