@@ -479,16 +479,16 @@ function Projects() {
       opacity = 1;
     } else if (position === 1) {
       x = 0;
-      y = isHovered ? -35 : -20;
-      scale = 0.95;
-      rotate = isHovered ? 4 : 2;
-      opacity = 0.9;
-    } else if (position === 2) {
+      y = 30;
+      scale = 0.94;
+      rotate = 0;
+      opacity = 0.3;
+    } else {
       x = 0;
-      y = isHovered ? -70 : -40;
-      scale = 0.9;
-      rotate = isHovered ? -4 : -2;
-      opacity = 0.8;
+      y = 55;
+      scale = 0.88;
+      rotate = 0;
+      opacity = 0.15;
     }
 
     return { x, y, scale, rotate, opacity, zIndex };
