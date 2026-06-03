@@ -43,36 +43,188 @@ function Particles() {
   return <canvas ref={ref} style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0 }} />;
 }
 
+function EnterOverlay({ onEnter }: { onEnter: () => void }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const mouseRef = useRef({ x: 0, y: 0 });
+  const [exiting, setExiting] = useState(false);
+
+  useEffect(() => {
+    const c = canvasRef.current!;
+    if (!c) return;
+    const ctx = c.getContext("2d")!;
+    const resize = () => { c.width = window.innerWidth; c.height = window.innerHeight; };
+    resize();
+    window.addEventListener("resize", resize);
+
+    const PARTICLE_COUNT = 200;
+    const particles = Array.from({ length: PARTICLE_COUNT }, () => ({
+      x: Math.random() * c.width,
+      y: Math.random() * c.height,
+      vx: (Math.random() - 0.5) * 0.6,
+      vy: (Math.random() - 0.5) * 0.6,
+      r: Math.random() * 2.5 + 0.5,
+      baseAlpha: Math.random() * 0.7 + 0.2,
+      pulse: Math.random() * Math.PI * 2,
+    }));
+
+    const onMove = (e: MouseEvent) => { mouseRef.current = { x: e.clientX, y: e.clientY }; };
+    window.addEventListener("mousemove", onMove);
+
+    let raf: number;
+    const draw = () => {
+      ctx.clearRect(0, 0, c.width, c.height);
+      const mx = mouseRef.current.x;
+      const my = mouseRef.current.y;
+
+      // Mouse glow
+      const glow = ctx.createRadialGradient(mx, my, 0, mx, my, 220);
+      glow.addColorStop(0, "rgba(255,107,0,0.12)");
+      glow.addColorStop(0.5, "rgba(255,107,0,0.04)");
+      glow.addColorStop(1, "transparent");
+      ctx.fillStyle = glow;
+      ctx.fillRect(0, 0, c.width, c.height);
+
+      particles.forEach(p => {
+        p.pulse += 0.02;
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0) p.x = c.width;
+        if (p.x > c.width) p.x = 0;
+        if (p.y < 0) p.y = c.height;
+        if (p.y > c.height) p.y = 0;
+
+        // Mouse repulsion
+        const dx = p.x - mx;
+        const dy = p.y - my;
+        const dist = Math.hypot(dx, dy);
+        if (dist < 150) {
+          const force = (150 - dist) / 150 * 0.8;
+          p.x += (dx / dist) * force;
+          p.y += (dy / dist) * force;
+        }
+
+        const alpha = p.baseAlpha * (0.6 + 0.4 * Math.sin(p.pulse));
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255,107,0,${alpha})`;
+        ctx.fill();
+      });
+
+      // Connection lines
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const d = Math.hypot(dx, dy);
+          if (d < 90) {
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.strokeStyle = `rgba(255,107,0,${0.12 * (1 - d / 90)})`;
+            ctx.lineWidth = 0.5;
+            ctx.stroke();
+          }
+        }
+      }
+      raf = requestAnimationFrame(draw);
+    };
+    draw();
+    return () => { cancelAnimationFrame(raf); window.removeEventListener("resize", resize); window.removeEventListener("mousemove", onMove); };
+  }, []);
+
+  const handleClick = () => {
+    setExiting(true);
+    setTimeout(() => onEnter(), 900);
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 1 }}
+      animate={exiting ? { opacity: 0, scale: 1.3, rotateX: 15 } : { opacity: 1 }}
+      transition={{ duration: 0.9, ease: [0.76, 0, 0.24, 1] }}
+      style={{
+        position: "absolute", inset: 0, zIndex: 100,
+        background: "radial-gradient(ellipse at center, #0a0a0a 0%, #050505 60%, #000 100%)",
+        display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center",
+        perspective: 1200, transformStyle: "preserve-3d",
+      }}
+    >
+      <canvas ref={canvasRef} style={{ position: "absolute", inset: 0, pointerEvents: "none" }} />
+
+      {/* Subtitle */}
+      <motion.p
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3, duration: 0.8 }}
+        style={{ color: "rgba(255,255,255,0.4)", fontSize: "0.85rem", letterSpacing: "0.3em", textTransform: "uppercase", fontWeight: 500, marginBottom: 16, zIndex: 10 }}
+      >
+        Ashutosh Amale
+      </motion.p>
+
+      {/* Title */}
+      <motion.h1
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5, duration: 0.8 }}
+        style={{
+          fontSize: "clamp(2rem, 5vw, 4rem)", fontWeight: 800, zIndex: 10,
+          background: "linear-gradient(135deg, #FF6B00, #FF8C42, #FFB347)",
+          WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent",
+          marginBottom: 40, textAlign: "center", lineHeight: 1.2,
+        }}
+      >
+        AI & Software Engineer
+      </motion.h1>
+
+      {/* Enter Button */}
+      <motion.button
+        onClick={handleClick}
+        initial={{ opacity: 0, scale: 0.8 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.8, duration: 0.6, type: "spring" }}
+        whileHover={{ scale: 1.08, boxShadow: "0 0 60px rgba(255,107,0,0.5), 0 0 120px rgba(255,107,0,0.2)" }}
+        whileTap={{ scale: 0.95 }}
+        style={{
+          padding: "18px 52px", fontSize: "1.1rem", fontWeight: 700,
+          background: "linear-gradient(135deg, #FF6B00, #FF8C42)",
+          color: "white", border: "none", borderRadius: 50, cursor: "pointer",
+          letterSpacing: "0.08em", zIndex: 10, position: "relative",
+          boxShadow: "0 10px 40px rgba(255,107,0,0.35), inset 0 1px 0 rgba(255,255,255,0.2)",
+          textTransform: "uppercase",
+        }}
+      >
+        Enter Portfolio
+      </motion.button>
+
+      {/* Scroll hint */}
+      <motion.p
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 0.3 }}
+        transition={{ delay: 1.2, duration: 1 }}
+        style={{ position: "absolute", bottom: 40, color: "white", fontSize: "0.75rem", letterSpacing: "0.15em", zIndex: 10 }}
+      >
+        CLICK TO BEGIN
+      </motion.p>
+    </motion.div>
+  );
+}
+
 function FullScreenVideo() {
   const [started, setStarted] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const handleStart = () => {
     setStarted(true);
-    if (videoRef.current) {
-      videoRef.current.play().catch(e => console.error("Video play failed:", e));
-    }
+    setTimeout(() => {
+      if (videoRef.current) {
+        videoRef.current.play().catch(e => console.error("Video play failed:", e));
+      }
+    }, 100);
   };
 
   return (
     <section id="home" style={{ height: "100vh", width: "100vw", position: "relative", overflow: "hidden" }}>
-      {!started && (
-        <div style={{ position: "absolute", inset: 0, zIndex: 100, background: "#050505", display: "flex", justifyContent: "center", alignItems: "center" }}>
-          <button 
-            onClick={handleStart} 
-            style={{ 
-              padding: "16px 40px", fontSize: "1.2rem", background: "#FF6B00", color: "white", 
-              border: "none", borderRadius: 30, cursor: "pointer", fontWeight: 700, 
-              letterSpacing: "0.05em", boxShadow: "0 10px 30px rgba(255,107,0,0.3)",
-              transition: "transform 0.2s" 
-            }}
-            onMouseEnter={e => e.currentTarget.style.transform = "scale(1.05)"}
-            onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
-          >
-            Enter Portfolio
-          </button>
-        </div>
-      )}
+      {!started && <EnterOverlay onEnter={handleStart} />}
       <video ref={videoRef} src="/hero-video.mp4" playsInline style={{ width: "100%", height: "100%", objectFit: "cover" }} />
       <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(15,23,42,0.8) 100%)", pointerEvents: "none" }} />
       
