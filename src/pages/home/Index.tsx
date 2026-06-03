@@ -44,9 +44,36 @@ function Particles() {
 }
 
 function FullScreenVideo() {
+  const [started, setStarted] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const handleStart = () => {
+    setStarted(true);
+    if (videoRef.current) {
+      videoRef.current.play().catch(e => console.error("Video play failed:", e));
+    }
+  };
+
   return (
     <section id="home" style={{ height: "100vh", width: "100vw", position: "relative", overflow: "hidden" }}>
-      <video src="/hero-video.mp4" autoPlay playsInline style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+      {!started && (
+        <div style={{ position: "absolute", inset: 0, zIndex: 100, background: "#050505", display: "flex", justifyContent: "center", alignItems: "center" }}>
+          <button 
+            onClick={handleStart} 
+            style={{ 
+              padding: "16px 40px", fontSize: "1.2rem", background: "#FF6B00", color: "white", 
+              border: "none", borderRadius: 30, cursor: "pointer", fontWeight: 700, 
+              letterSpacing: "0.05em", boxShadow: "0 10px 30px rgba(255,107,0,0.3)",
+              transition: "transform 0.2s" 
+            }}
+            onMouseEnter={e => e.currentTarget.style.transform = "scale(1.05)"}
+            onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
+          >
+            Enter Portfolio
+          </button>
+        </div>
+      )}
+      <video ref={videoRef} src="/hero-video.mp4" playsInline style={{ width: "100%", height: "100%", objectFit: "cover" }} />
       <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(15,23,42,0.8) 100%)", pointerEvents: "none" }} />
       
       <motion.div animate={{ y: [0, 10, 0] }} transition={{ repeat: Infinity, duration: 2 }} style={{ position: "absolute", bottom: 40, left: "50%", transform: "translateX(-50%)", color: "white", display: "flex", flexDirection: "column", alignItems: "center", gap: 5, fontSize: "0.85rem", zIndex: 10, textShadow: "0 2px 4px rgba(0,0,0,0.5)", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" }}>
