@@ -209,22 +209,17 @@ function EnterOverlay({ onEnter }: { onEnter: () => void }) {
   );
 }
 
-function FullScreenVideo() {
-  const [started, setStarted] = useState(false);
+function FullScreenVideo({ play }: { play: boolean }) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
-  const handleStart = () => {
-    setStarted(true);
-    setTimeout(() => {
-      if (videoRef.current) {
-        videoRef.current.play().catch(e => console.error("Video play failed:", e));
-      }
-    }, 100);
-  };
+  useEffect(() => {
+    if (play && videoRef.current) {
+      videoRef.current.play().catch(e => console.error("Video play failed:", e));
+    }
+  }, [play]);
 
   return (
     <section id="home" style={{ height: "100vh", width: "100vw", position: "relative", overflow: "hidden" }}>
-      {!started && <EnterOverlay onEnter={handleStart} />}
       <video ref={videoRef} src="/hero-video.mp4" playsInline style={{ width: "100%", height: "100%", objectFit: "cover" }} />
       <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(15,23,42,0.8) 100%)", pointerEvents: "none" }} />
       
@@ -611,26 +606,36 @@ function Contact() {
   );
 }
 
-const Index = () => (
-  <div style={{ minHeight: "100vh", background: "#050505", color: "white" }}>
-    <Cursor />
-    <Particles />
-    <Navbar />
-    <motion.main initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: .5 }}>
-      <FullScreenVideo />
-      <Hero />
-      <ProjectsMarquee />
+function Index() {
+  const [entered, setEntered] = useState(false);
 
-      <Services />
-      <Projects />
-      <Experience />
-      <Skills />
-      <Contact />
-      <footer style={{ borderTop: "1px solid rgba(255,255,255,.05)", padding: "40px 6%", textAlign: "center", color: "rgba(255,255,255,.3)", fontSize: ".9rem", background: "#050505" }}>
-        © 2026 <span style={{ color: "#FF6B00" }}>Ashutosh Amale</span>. Building the future.
-      </footer>
-    </motion.main>
-  </div>
-);
+  return (
+    <div style={{ minHeight: "100vh", background: "#050505", color: "white" }}>
+      <Cursor />
+      {!entered && (
+        <EnterOverlay onEnter={() => setEntered(true)} />
+      )}
+      {entered && (
+        <>
+          <Particles />
+          <Navbar />
+          <motion.main initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8 }}>
+            <FullScreenVideo play={entered} />
+            <Hero />
+            <ProjectsMarquee />
+            <Services />
+            <Projects />
+            <Experience />
+            <Skills />
+            <Contact />
+            <footer style={{ borderTop: "1px solid rgba(255,255,255,.05)", padding: "40px 6%", textAlign: "center", color: "rgba(255,255,255,.3)", fontSize: ".9rem", background: "#050505" }}>
+              © 2026 <span style={{ color: "#FF6B00" }}>Ashutosh Amale</span>. Building the future.
+            </footer>
+          </motion.main>
+        </>
+      )}
+    </div>
+  );
+}
 
 export default Index;
