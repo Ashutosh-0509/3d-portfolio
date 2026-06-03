@@ -44,10 +44,34 @@ function Particles() {
 }
 
 function FullScreenVideo() {
+  const [isMuted, setIsMuted] = useState(true);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  const toggleMute = () => {
+    setIsMuted(!isMuted);
+    if (videoRef.current) {
+      videoRef.current.muted = !isMuted;
+    }
+  };
+
   return (
     <section id="home" style={{ height: "100vh", width: "100vw", position: "relative", overflow: "hidden" }}>
-      <video src="/hero-video.mp4" autoPlay playsInline style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+      <video ref={videoRef} src="/hero-video.mp4" autoPlay muted loop playsInline style={{ width: "100%", height: "100%", objectFit: "cover" }} />
       <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(15,23,42,0.8) 100%)", pointerEvents: "none" }} />
+      
+      <button 
+        onClick={toggleMute}
+        style={{
+          position: "absolute", top: 100, right: "6%", zIndex: 50,
+          background: "rgba(255,255,255,0.1)", backdropFilter: "blur(8px)",
+          border: "1px solid rgba(255,255,255,0.2)", color: "white",
+          padding: "8px 16px", borderRadius: 20, cursor: "pointer",
+          display: "flex", alignItems: "center", gap: 8, fontSize: "0.85rem"
+        }}
+      >
+        {isMuted ? "🔇 Unmute Video" : "🔊 Mute Video"}
+      </button>
+
       <motion.div animate={{ y: [0, 10, 0] }} transition={{ repeat: Infinity, duration: 2 }} style={{ position: "absolute", bottom: 40, left: "50%", transform: "translateX(-50%)", color: "white", display: "flex", flexDirection: "column", alignItems: "center", gap: 5, fontSize: "0.85rem", zIndex: 10, textShadow: "0 2px 4px rgba(0,0,0,0.5)", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" }}>
         Scroll Down
         <ChevronDown size={24} />
