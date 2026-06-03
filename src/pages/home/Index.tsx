@@ -44,9 +44,19 @@ function Particles() {
 }
 
 function FullScreenVideo() {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.play().catch(e => console.error("Autoplay prevented:", e));
+    }
+  }, []);
+
   return (
     <section id="home" style={{ height: "100vh", width: "100vw", position: "relative", overflow: "hidden" }}>
-      <video src="/hero-video.mp4" autoPlay muted playsInline style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+      <video ref={videoRef} autoPlay muted playsInline style={{ width: "100%", height: "100%", objectFit: "cover" }}>
+        <source src="/hero-video.mp4" type="video/mp4" />
+      </video>
       <div style={{ position: "absolute", inset: 0, background: "linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(15,23,42,0.8) 100%)", pointerEvents: "none" }} />
       
       <motion.div animate={{ y: [0, 10, 0] }} transition={{ repeat: Infinity, duration: 2 }} style={{ position: "absolute", bottom: 40, left: "50%", transform: "translateX(-50%)", color: "white", display: "flex", flexDirection: "column", alignItems: "center", gap: 5, fontSize: "0.85rem", zIndex: 10, textShadow: "0 2px 4px rgba(0,0,0,0.5)", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" }}>
