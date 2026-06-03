@@ -402,242 +402,87 @@ function Projects() {
     }
   ];
 
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [isAnimating, setIsAnimating] = useState(false);
-  const [exitY, setExitY] = useState(0);
-  const [enterY, setEnterY] = useState(700);
-  const [isHovered, setIsHovered] = useState(false);
-  const [shufflingIndex, setShufflingIndex] = useState<number | null>(null);
-  const [shufflingDir, setShufflingDir] = useState<'left' | 'right' | null>(null);
-  const [draggedX, setDraggedX] = useState<number>(0);
-
-  const nextCard = (dir: 'left' | 'right' = 'right') => {
-    if (shufflingIndex !== null) return;
-    setShufflingIndex(activeIndex);
-    setShufflingDir(dir);
-  };
-
-  const prevCard = () => {
-    if (shufflingIndex !== null) return;
-    const prevIndex = (activeIndex - 1 + projectsData.length) % projectsData.length;
-    setShufflingIndex(prevIndex);
-    setShufflingDir('left');
-  };
-
-  const handleAnimationComplete = (i: number) => {
-    if (shufflingIndex === i) {
-      if (shufflingIndex === activeIndex) {
-        setActiveIndex((prev) => (prev + 1) % projectsData.length);
-      } else {
-        setActiveIndex(shufflingIndex);
-      }
-      setShufflingIndex(null);
-      setShufflingDir(null);
-    }
-  };
-
-  const getCardStyles = (i: number) => {
-    const total = projectsData.length;
-
-    if (shufflingIndex === i) {
-      const isNext = shufflingIndex === activeIndex;
-      if (isNext) {
-        return {
-          x: shufflingDir === 'left' ? -600 : 600,
-          y: 10,
-          scale: 0.95,
-          rotate: shufflingDir === 'left' ? -12 : 12,
-          opacity: 0,
-          zIndex: 10,
-        };
-      } else {
-        return {
-          x: shufflingDir === 'left' ? -600 : 600,
-          y: 0,
-          scale: 1,
-          rotate: shufflingDir === 'left' ? -12 : 12,
-          opacity: 0,
-          zIndex: 10,
-        };
-      }
-    }
-
-    const position = (i - activeIndex + total) % total;
-
-    let x = 0;
-    let y = 0;
-    let scale = 1;
-    let rotate = 0;
-    let opacity = 1;
-    let zIndex = total - position;
-
-    if (position === 0) {
-      x = 0;
-      y = 0;
-      scale = 1;
-      rotate = 0;
-      opacity = 1;
-    } else if (position === 1) {
-      x = 0;
-      y = 30;
-      scale = 0.94;
-      rotate = 0;
-      opacity = 0.3;
-    } else {
-      x = 0;
-      y = 55;
-      scale = 0.88;
-      rotate = 0;
-      opacity = 0.15;
-    }
-
-    return { x, y, scale, rotate, opacity, zIndex };
-  };
-
   return (
     <section id="projects" style={{ padding: "120px 6%", position: "relative", overflow: "hidden" }}>
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-         <motion.div initial={{ y: 50, opacity: 0 }} whileInView={{ y: 0, opacity: 1 }} transition={{ duration: 0.6 }} viewport={{ once: true }} style={{ marginBottom: 60, display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
-            <div>
-               <h2 style={{ fontSize: "clamp(2rem,4vw,3.5rem)", fontWeight: 800, color: "white" }}>Selected Work</h2>
-               <div className="section-title-line" />
-            </div>
-            
-            <div style={{ display: "flex", gap: 16 }} className="hide-mobile">
-              <button onClick={prevCard} className="deck-nav-btn" aria-label="Previous project">
-                <ChevronLeft size={24} />
-              </button>
-              <button onClick={() => nextCard('right')} className="deck-nav-btn" aria-label="Next project">
-                <ChevronRight size={24} />
-              </button>
-            </div>
-         </motion.div>
+        <motion.div initial={{ y: 50, opacity: 0 }} whileInView={{ y: 0, opacity: 1 }} transition={{ duration: 0.6 }} viewport={{ once: true }} style={{ marginBottom: 60 }}>
+          <h2 style={{ fontSize: "clamp(2rem,4vw,3.5rem)", fontWeight: 800, color: "white" }}>Selected Work</h2>
+          <div className="section-title-line" />
+        </motion.div>
 
-         <div 
-           className="projects-deck-container"
-           onMouseEnter={() => setIsHovered(true)}
-           onMouseLeave={() => setIsHovered(false)}
-         >
-            {projectsData.map((p, i) => {
-              const cardStyle = getCardStyles(i);
-              const position = (i - activeIndex + projectsData.length) % projectsData.length;
-              const isTop = position === 0 && shufflingIndex === null;
-              const currentRotate = isTop && draggedX !== 0 ? draggedX / 25 : cardStyle.rotate;
+        <div style={{ display: "flex", flexDirection: "column", gap: 40 }}>
+          {projectsData.map((p, i) => (
+            <motion.div
+              key={p.title}
+              initial={{ y: 60, opacity: 0 }}
+              whileInView={{ y: 0, opacity: 1 }}
+              transition={{ delay: i * 0.15, duration: 0.6 }}
+              viewport={{ once: true }}
+              className="glass project-card"
+              style={{
+                padding: "clamp(24px, 4vw, 48px)",
+                borderRadius: 24,
+                borderTop: `4px solid ${p.color}`,
+                position: "relative",
+                overflow: "hidden",
+              }}
+            >
+              {/* Number watermark */}
+              <div style={{
+                position: "absolute", top: -20, right: 30,
+                fontSize: "8rem", fontWeight: 900, color: p.color,
+                opacity: 0.06, lineHeight: 1, pointerEvents: "none",
+              }}>{p.num}</div>
 
-              return (
-                <motion.div
-                  key={p.title}
-                  className="glass"
-                  drag={isTop ? "x" : false}
-                  dragConstraints={{ left: 0, right: 0 }}
-                  dragElastic={0.8}
-                  onDrag={(e, info) => {
-                    if (isTop) setDraggedX(info.offset.x);
-                  }}
-                  onDragEnd={(e, info) => {
-                    if (!isTop) return;
-                    const swipeThreshold = 140;
-                    if (info.offset.x > swipeThreshold) {
-                      nextCard('right');
-                    } else if (info.offset.x < -swipeThreshold) {
-                      nextCard('left');
-                    }
-                    setDraggedX(0);
-                  }}
-                  animate={{
-                    x: shufflingIndex === i ? cardStyle.x : (isTop && draggedX !== 0 ? draggedX : cardStyle.x),
-                    y: cardStyle.y,
-                    scale: cardStyle.scale,
-                    rotate: currentRotate,
-                    opacity: cardStyle.opacity,
-                  }}
-                  transition={{
-                    type: "spring",
-                    stiffness: 260,
-                    damping: 26,
-                  }}
-                  style={{
-                    position: "absolute",
-                    width: "100%",
-                    minHeight: "50vh",
-                    padding: "4vw",
-                    borderRadius: 24,
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "space-between",
-                    borderTop: `4px solid ${p.color}`,
-                    zIndex: cardStyle.zIndex,
-                    cursor: isTop ? "grab" : "default",
-                    touchAction: "none",
-                  }}
-                  whileTap={isTop ? { cursor: "grabbing" } : {}}
-                  onAnimationComplete={() => handleAnimationComplete(i)}
+              {/* Header row */}
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 20, marginBottom: 24 }}>
+                <div style={{ flex: 1, minWidth: 280 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+                    <span style={{ color: p.color, fontWeight: 700, fontSize: "1.1rem", fontFamily: "var(--font-mono)" }}>{p.num}</span>
+                    <span style={{ color: p.color, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", fontSize: "0.85rem" }}>{p.cat}</span>
+                  </div>
+                  <h3 style={{ color: "white", fontSize: "clamp(1.5rem, 3vw, 2.2rem)", fontWeight: 800, marginBottom: 14 }}>{p.title}</h3>
+                  <p style={{ color: "rgba(255,255,255,0.65)", fontSize: "1rem", lineHeight: 1.7, maxWidth: 600 }}>{p.desc}</p>
+                </div>
+                <button
+                  className="btn-primary"
+                  style={{ background: p.color, display: "flex", alignItems: "center", gap: 8, whiteSpace: "nowrap" }}
+                  onClick={() => window.open(p.link, "_blank")}
                 >
-                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 24 }}>
-                      <div style={{ flex: 1, minWidth: 300 }}>
-                         <div style={{ color: p.color, fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 12, fontSize: "0.9rem" }}>{p.cat}</div>
-                         <h3 style={{ color: "white", fontSize: "clamp(1.8rem, 3vw, 2.5rem)", fontWeight: 800, marginBottom: 20 }}>{p.title}</h3>
-                         <p style={{ color: "rgba(255,255,255,0.7)", fontSize: "1.1rem", lineHeight: 1.6, maxWidth: 600 }}>{p.desc}</p>
-                      </div>
-                      <button className="btn-primary" style={{ background: p.color, display: "flex", alignItems: "center", gap: 8 }} onClick={(e) => { e.stopPropagation(); window.open(p.link, "_blank"); }}>View Project <FaExternalLinkAlt size={12} /></button>
-                   </div>
-                   
-                   <div style={{ display: "flex", gap: 16, marginTop: 40, flex: 1, minHeight: 200, flexWrap: "wrap" }}>
-                      {p.images.map((img, j) => {
-                        const isVideo = img.endsWith('.mp4');
-                        const isSimulation = img === 'MAZE_SIMULATION';
-                        return (
-                          <div key={j} style={{ flex: isVideo || isSimulation ? "1 1 100%" : "1 1 200px", background: `linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01))`, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid rgba(255,255,255,0.05)", position: "relative", overflow: "hidden", minHeight: isVideo ? 350 : isSimulation ? 450 : 150 }} className="project-card">
-                            {isVideo ? (
-                              <video src={img} autoPlay muted loop playsInline style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                            ) : isSimulation ? (
-                              <MazeSolver color={p.color} />
-                            ) : (
-                              <>
-                                <div style={{ position: "absolute", inset: 0, background: `radial-gradient(circle at center, ${p.color}15, transparent 70%)` }} />
-                                <span style={{ color: "rgba(255,255,255,0.8)", fontWeight: 600, fontSize: "0.95rem", zIndex: 1, textAlign: "center", padding: 10 }}>{img}</span>
-                              </>
-                            )}
-                          </div>
-                        );
-                      })}
-                   </div>
-                </motion.div>
-              );
-            })}
-         </div>
+                  View Project <FaExternalLinkAlt size={12} />
+                </button>
+              </div>
 
-         <div style={{ display: "none", gap: 20, justifyContent: "center", marginTop: 24 }} className="show-mobile-flex">
-           <button onClick={prevCard} className="deck-nav-btn" aria-label="Previous project">
-             <ChevronLeft size={20} />
-           </button>
-           <button onClick={() => nextCard('right')} className="deck-nav-btn" aria-label="Next project">
-             <ChevronRight size={20} />
-           </button>
-         </div>
-
-         <div className="deck-dots-container">
-           {projectsData.map((_, i) => (
-             <div
-               key={i}
-               className={`deck-dot ${i === activeIndex ? "active" : ""}`}
-               onClick={() => {
-                 if (shufflingIndex !== null) return;
-                 if (i === activeIndex) return;
-                 setShufflingIndex(activeIndex);
-                 setShufflingDir(i > activeIndex ? 'right' : 'left');
-                 setActiveIndex(i);
-               }}
-             />
-           ))}
-         </div>
+              {/* Media */}
+              <div style={{ borderRadius: 16, overflow: "hidden", border: "1px solid rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.3)" }}>
+                {p.images.map((img, j) => {
+                  const isVideo = img.endsWith('.mp4');
+                  const isSimulation = img === 'MAZE_SIMULATION';
+                  return (
+                    <div key={j} style={{
+                      width: "100%",
+                      minHeight: isSimulation ? 450 : 350,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      position: "relative", overflow: "hidden",
+                    }}>
+                      {isVideo ? (
+                        <video src={img} autoPlay muted loop playsInline style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      ) : isSimulation ? (
+                        <MazeSolver color={p.color} />
+                      ) : (
+                        <>
+                          <div style={{ position: "absolute", inset: 0, background: `radial-gradient(circle at center, ${p.color}15, transparent 70%)` }} />
+                          <span style={{ color: "rgba(255,255,255,0.8)", fontWeight: 600, fontSize: "0.95rem", zIndex: 1, textAlign: "center", padding: 10 }}>{img}</span>
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          ))}
+        </div>
       </div>
-      <style>{`
-        @media (max-width: 768px) {
-          .hide-mobile { display: none !important; }
-          .show-mobile-flex { display: flex !important; }
-        }
-      `}</style>
     </section>
   );
 }
